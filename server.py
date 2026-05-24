@@ -1934,6 +1934,21 @@ if __name__ == "__main__":
 
         t = threading.Thread(target=_start_keepalive, daemon=True)
         t.start()
+        # --- 每日自动备份到 GitHub ---
+        import threading as _threading
+        def _backup_loop():
+            import time as _time
+            _time.sleep(60)  # 启动后等1分钟再跑第一次
+            while True:
+                try:
+                    import subprocess
+                    subprocess.run(["python3", "/app/backup_to_github.py"], check=True)
+                    logger.info("自动备份成功")
+                except Exception as _e:
+                    logger.warning(f"自动备份失败: {_e}")
+                _time.sleep(86400)  # 每24小时跑一次
+        _bt = _threading.Thread(target=_backup_loop, daemon=True)
+        _bt.start()
 
         # --- Add CORS middleware so remote clients (Cloudflare Tunnel / ngrok) can connect ---
         # --- 添加 CORS 中间件，让远程客户端（Cloudflare Tunnel / ngrok）能正常连接 ---
